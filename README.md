@@ -1,5 +1,3 @@
-Siap, berikut versi `README.md` **tanpa format markdown khusus seperti bash block, dll**, jadi tampilannya bersih dan mudah dibaca langsung di GitHub atau teks editor:
-
 ---
 
 ## 🚦 Aturan Git (Commit, Push, Pull)
