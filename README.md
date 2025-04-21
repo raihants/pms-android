@@ -116,5 +116,3 @@ Pastikan `.gitignore` memblokir file berikut:
 **Jaga repo tetap bersih, kerja tim lebih lancar! 🚀**
 
 ---
-
-Kalau kamu mau, aku bisa buatin file `.md`-nya langsung buat diunduh atau ditaruh ke repositorimu. Mau lanjut ke `.gitignore` juga?
