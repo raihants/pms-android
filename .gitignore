@@ -15,19 +15,31 @@ captures/
 *.apk
 output.json
 
-# IntelliJ
+# IntelliJ / Android Studio
 *.iml
 .idea/
+*.ipr
+*.iws
+*.swp
 misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml
 
-# Keystore files
+# Keystore files (jaga keamanan)
 *.jks
 *.keystore
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json
+firebase*.json
 
 # Android Profiling
 *.hprof
+
+# Mac OS / Linux
+.DS_Store
+Thumbs.db
+
+# Crashlytics / Fabric
+fabric.properties
+crashlytics-build.properties
