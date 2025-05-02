@@ -2,9 +2,12 @@ package com.example.apiretrofit.api.model
 
 data class Project(
     val id: Int,
-    val nama_project: String,
-    val deskripsi: String,
-    val tanggal_mulai: String,
-    val tanggal_selesai: String,
-    val status: String
+    val Name: String,
+    val description: String,
+    val start_date: String,
+    val end_date: String,
+    val status: Int,
+    val budget: Int,
+    val manager_id: Int
 )
+
