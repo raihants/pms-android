@@ -51,7 +51,7 @@ class LoginActivity : AppCompatActivity() {
 
                     val userRole = sessionManager.getUserRole()
 
-                    if (userRole == "manager") {
+                    if (userRole == "Manajer") {
                         // Kalau user developer
                         startActivity(Intent(this@LoginActivity, ManagerMainActivity::class.java))
                         Toast.makeText(this@LoginActivity, "Welcome Admin!", Toast.LENGTH_SHORT).show()
