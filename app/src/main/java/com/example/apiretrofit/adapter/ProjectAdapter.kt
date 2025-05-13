@@ -2,6 +2,7 @@ package com.example.apiretrofit.adapter
 
 import com.example.apiretrofit.ui.manager.ManagerMainActivity
 import android.app.AlertDialog
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,6 +10,7 @@ import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
 import com.example.apiretrofit.R
 import com.example.apiretrofit.api.model.Project
+import com.example.apiretrofit.ui.manager.DetailProjectActivity
 
 class ProjectAdapter(
     private val projects: List<Project>,
@@ -33,9 +35,9 @@ class ProjectAdapter(
 
     override fun onBindViewHolder(holder: ProjectViewHolder, position: Int) {
         val project = projects[position]
-        holder.txtName.text = project.Name
+        holder.txtName.text = project.name
         holder.txtStatus.text = "Status: ${project.status}"
-        holder.txtDates.text = "Mulai: ${project.start_date} | Selesai: ${project.end_date}"
+        holder.txtDates.text = "Mulai: ${project.start_date.takeIf { it.length >= 10 }?.substring(0, 10) ?: ""} | Selesai: ${project.end_date.takeIf { it.length >= 10 }?.substring(0, 10) ?: ""}"
         holder.txtBudget.text = "Anggaran: Rp${project.budget}"
 
         holder.btnEdit.setOnClickListener {
@@ -51,6 +53,12 @@ class ProjectAdapter(
                 }
                 .setNegativeButton("Batal", null)
                 .show()
+        }
+
+        holder.itemView.setOnClickListener {
+            val intent = Intent(context, DetailProjectActivity::class.java)
+            intent.putExtra("project_id", project.id)
+            context.startActivity(intent)
         }
     }
 }

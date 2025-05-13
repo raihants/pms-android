@@ -25,6 +25,7 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var passwordInput: EditText
     private lateinit var roleSpinner: Spinner
     private lateinit var registerButton: Button
+    private lateinit var loginButton: Button
 
     private val roles = listOf("Manager", "Developer", "Designer", "Tester")
 
@@ -37,6 +38,7 @@ class RegisterActivity : AppCompatActivity() {
         passwordInput = findViewById(R.id.passwordInput)
         roleSpinner = findViewById(R.id.roleSpinner)
         registerButton = findViewById(R.id.registerButton)
+        loginButton = findViewById(R.id.loginButton)
 
         roleSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, roles)
 
@@ -48,6 +50,10 @@ class RegisterActivity : AppCompatActivity() {
 
             registerUser(namaLengkap, username, password, role)
             // Simpan user ke database atau kirim ke server di sini
+        }
+
+        loginButton.setOnClickListener {
+           startActivity(Intent(this@RegisterActivity, LoginActivity::class.java))
         }
     }
 

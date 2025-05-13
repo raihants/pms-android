@@ -51,26 +51,30 @@ class LoginActivity : AppCompatActivity() {
 
                     val userRole = sessionManager.getUserRole()
 
-                    if (userRole == "Manajer") {
-                        // Kalau user developer
-                        startActivity(Intent(this@LoginActivity, ManagerMainActivity::class.java))
-                        Toast.makeText(this@LoginActivity, "Welcome Admin!", Toast.LENGTH_SHORT).show()
-                        finish()
-                    } else if (userRole == "developer") {
-                        // Kalau user admin
-                        startActivity(Intent(this@LoginActivity, DeveloperMainActivity::class.java))
-                        Toast.makeText(this@LoginActivity, "Welcome Developer!", Toast.LENGTH_SHORT).show()
-                        finish()
-                    } else if (userRole == "designer") {
-                        // Kalau role lain
-                        startActivity(Intent(this@LoginActivity, DesignerMainActivity::class.java))
-                        Toast.makeText(this@LoginActivity, "Welcome Designer!", Toast.LENGTH_SHORT).show()
-                        finish()
-                    } else {
-                        startActivity(Intent(this@LoginActivity, TesterMainActivity::class.java))
-                        Toast.makeText(this@LoginActivity, "Welcome Tester!", Toast.LENGTH_SHORT).show()
-                        finish()
+                    when (userRole?.lowercase()) {
+                        "manajer" -> {
+                            startActivity(Intent(this@LoginActivity, ManagerMainActivity::class.java))
+                            Toast.makeText(this@LoginActivity, "Welcome Manager!", Toast.LENGTH_SHORT).show()
+                        }
+                        "developer" -> {
+                            startActivity(Intent(this@LoginActivity, DeveloperMainActivity::class.java))
+                            Toast.makeText(this@LoginActivity, "Welcome Developer!", Toast.LENGTH_SHORT).show()
+                        }
+                        "designer" -> {
+                            startActivity(Intent(this@LoginActivity, DesignerMainActivity::class.java))
+                            Toast.makeText(this@LoginActivity, "Welcome Designer!", Toast.LENGTH_SHORT).show()
+                        }
+                        "tester" -> {
+                            startActivity(Intent(this@LoginActivity, TesterMainActivity::class.java))
+                            Toast.makeText(this@LoginActivity, "Welcome Tester!", Toast.LENGTH_SHORT).show()
+                        }
+                        else -> {
+                            Toast.makeText(this@LoginActivity, "Unknown role: $userRole", Toast.LENGTH_SHORT).show()
+                            return@launch
+                        }
                     }
+                    finish()
+
                 } else {
                     Toast.makeText(this@LoginActivity, "Login gagal", Toast.LENGTH_SHORT).show()
                 }
