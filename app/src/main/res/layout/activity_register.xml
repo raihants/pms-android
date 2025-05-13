@@ -66,5 +66,12 @@
             android:text="Register"
             android:textColor="@android:color/white"
             android:padding="12dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:gravity="center"
+            android:id="@+id/loginButton"
+            android:text="Register"/>
     </LinearLayout>
 </ScrollView>

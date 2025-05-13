@@ -47,6 +47,8 @@ class SessionManager(context: Context) {
         prefs.edit().clear().apply()
     }
 
+    fun getUserId(): Int = prefs.getInt("USER_ID", 0)
+
     fun getUserRole(): String? = prefs.getString("ROLE", null)
 
     fun isUserRole(role: String): Boolean {

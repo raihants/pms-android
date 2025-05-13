@@ -11,6 +11,8 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -22,6 +24,7 @@ import com.example.apiretrofit.api.services.ApiClient
 import com.example.apiretrofit.api.services.ApiService
 import com.example.apiretrofit.api.session.SessionManager
 import com.example.apiretrofit.ui.LoginActivity
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
@@ -31,10 +34,8 @@ import java.util.*
 class ManagerMainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var progressBar: ProgressBar
-    private lateinit var btnAdd: Button
+    private lateinit var btnAdd: FloatingActionButton
     private lateinit var btnLogout: Button
-    private lateinit var tvErr: TextView
-    private lateinit var tvErr1: TextView
     private lateinit var projectList: ArrayList<Project>
     private lateinit var adapter: ProjectAdapter
     private lateinit var api: ApiService
@@ -43,9 +44,12 @@ class ManagerMainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_manager_main)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
 
-        tvErr = findViewById(R.id.txtError)
-        tvErr1 = findViewById(R.id.txtError1)
         recyclerView = findViewById(R.id.recyclerView)
         progressBar = findViewById(R.id.progressBar)
         btnAdd = findViewById(R.id.btnAdd)
@@ -70,7 +74,31 @@ class ManagerMainActivity : AppCompatActivity() {
         btnAdd.setOnClickListener {
             showProjectDialog()
         }
+
     }
+
+    override fun onCreateOptionsMenu(menu: android.view.Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_profile -> {
+                Toast.makeText(this, "Klik Profile", Toast.LENGTH_SHORT).show()
+                true
+            }
+            R.id.action_logout -> {
+                sessionManager.clearSession()
+                Toast.makeText(this, "Anda telah logout", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
 
     private fun fetchProjects() {
         progressBar.visibility = View.VISIBLE
@@ -124,123 +152,80 @@ class ManagerMainActivity : AppCompatActivity() {
         endDate.setOnClickListener { datePickerListener(endDate) }
 
         if (project != null) {
-            name.setText(project.Name)
+            name.setText(project.name)
             description.setText(project.description)
-            startDate.setText(project.start_date)
-            endDate.setText(project.end_date)
-            budget.setText(project.budget.toString())
-            status.setSelection(project.status)
+            startDate.setText(project.start_date.takeIf { it.length >= 10 }?.substring(0, 10) ?: "")
+            endDate.setText(project.end_date.takeIf { it.length >= 10 }?.substring(0, 10) ?: "")
+            budget.setText(project.budget)
+            val statusIndex = statuses.indexOfFirst { it.equals(project.status, ignoreCase = true) }
+            if (statusIndex >= 0) {
+                status.setSelection(statusIndex)
+            }
         }
 
         val dialog = AlertDialog.Builder(this)
-            .setTitle(if (project == null) "Tambah Proyek" else "Edit Proyek")
-            .setView(dialogView)
-            .setPositiveButton("Simpan") { _, _ ->
-                createProject(
-                    id = project?.id ?: 0,
-                    name = name.text.toString(),
-                    description = description.text.toString(),
-                    start_date = startDate.text.toString(),
-                    end_date = endDate.text.toString(),
-                    status = status.selectedItemPosition,
-                    budget = budget.text
-                )
+        .setTitle(if (project == null) "Tambah Project" else "Edit Project")
+        .setView(dialogView)
+        .setPositiveButton(if (project == null) "Simpan" else "Update") { _, _ ->
+            val projectData = Project(
+                id = project?.id ?: 0,
+                name = name.text.toString(),
+                description = description.text.toString(),
+                start_date = startDate.text.toString(),
+                end_date = endDate.text.toString(),
+                status = status.selectedItem.toString(),
+                budget = budget.text.toString(),
+                manager_id = sessionManager.getUserId()
+            )
+
+            if (project == null) {
+                createProject(projectData)
+            } else {
+                updateProject(projectData)
             }
-            .setNegativeButton("Batal", null)
-            .create()
+        }
+
+        .setNegativeButton("Batal", null)
+        .create()
         dialog.show()
+
     }
 
-    private fun createProject(
-        id: Int,
-        name: String,
-        description: String,
-        start_date: String,
-        end_date: String,
-        status: Int,
-        budget: Editable
-    ) {
-        // Convert budget to Int, menggunakan 0 jika tidak valid
-        val parsedBudget = budget.toString().toIntOrNull() ?: 0
+    private fun createProject(project: Project) {
         lifecycleScope.launch {
             try {
-                val api = ApiClient.getApiService(this@ManagerMainActivity)
-                val projectData = Project(
-                    id = id,
-                    Name = name,
-                    description = description,
-                    start_date = start_date,
-                    end_date = end_date,
-                    status = status ?: 1,
-                    budget = parsedBudget,  // Gunakan parsedBudget yang bertipe Int
-                    manager_id = 1 // atau ambil dari sessionManager
-                )
-
-                // Convert projectData ke format JSON (raw request)
-                val rawJsonRequest = """
-                {
-                    "id": ${projectData.id},
-                    "Name": "${projectData.Name}",
-                    "description": "${projectData.description}",
-                    "start_date": "${projectData.start_date}",
-                    "end_date": "${projectData.end_date}",
-                    "status": ${projectData.status},
-                    "budget": ${projectData.budget},
-                    "manager_id": ${projectData.manager_id}
-                }
-            """.trimIndent()
-
-                // Menampilkan raw request JSON ke tvErr
-                tvErr.text = rawJsonRequest
-                Log.d("RAW_REQUEST", "Request JSON: $rawJsonRequest")
-
-                // Kode untuk mengirimkan data ke API
-                val response = api.createProject(projectData)
-
+                val response = api.createProject(project)
                 if (response.isSuccessful) {
                     Toast.makeText(this@ManagerMainActivity, "Proyek berhasil ditambahkan", Toast.LENGTH_SHORT).show()
                     fetchProjects()
                 } else {
-                    val errorBody = response.errorBody()?.string()
-                    Log.e("API_ERROR", "Gagal: $errorBody")
-
-                    tvErr.text = "Error Body: $errorBody"
-                    Toast.makeText(this@ManagerMainActivity, "Gagal menambahkan proyek:\n$errorBody", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@ManagerMainActivity, "Gagal menambahkan proyek", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Log.e("API_EXCEPTION", "Terjadi kesalahan: ${e.message}", e)
-                Toast.makeText(this@ManagerMainActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-                tvErr1.text = e.message
+                Toast.makeText(this@ManagerMainActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-
-
-
-
     fun updateProject(project: Project) {
-            api.updateProject(project.id, project).enqueue(object : Callback<Project> {
-                override fun onResponse(call: Call<Project>, response: Response<Project>) {
+        api.updateProject(project.id, project).enqueue(object : Callback<Project> {
+            override fun onResponse(call: Call<Project>, response: Response<Project>) {
+                if (response.isSuccessful) {
+                    Toast.makeText(this@ManagerMainActivity, "Proyek diperbarui", Toast.LENGTH_SHORT).show()
                     fetchProjects()
-                    Toast.makeText(
-                        this@ManagerMainActivity,
-                        "Proyek diperbarui",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                } else {
+                    Toast.makeText(this@ManagerMainActivity, "Gagal memperbarui proyek", Toast.LENGTH_SHORT).show()
+                    Log.e("API", "Error updating project: ${response.errorBody()?.string()}")
                 }
+            }
 
-                override fun onFailure(call: Call<Project>, t: Throwable) {
-                    Toast.makeText(
-                        this@ManagerMainActivity,
-                        "Gagal update proyek",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            })
-        }
+            override fun onFailure(call: Call<Project>, t: Throwable) {
+                Toast.makeText(this@ManagerMainActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
 
-        fun deleteProject(project: Project) {
+    fun deleteProject(project: Project) {
             api.deleteProject(project.id).enqueue(object : Callback<Void> {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
                     fetchProjects()
