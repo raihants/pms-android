@@ -3,8 +3,10 @@ package com.example.apiretrofit.api.services
 import com.example.apiretrofit.api.model.LoginRequest
 import com.example.apiretrofit.api.model.LoginResponse
 import com.example.apiretrofit.api.model.Project
+import com.example.apiretrofit.api.model.ProjectResponse
 import com.example.apiretrofit.api.model.RegisterResponse
 import com.example.apiretrofit.api.model.User
+import com.example.apiretrofit.api.model.Tasks
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -26,12 +28,16 @@ interface ApiService {
     fun getProjects(): Call<List<Project>>
 
     @POST("projects")
-    suspend fun createProject(@Body request: Project): Response<RegisterResponse>
+    suspend fun createProject(@Body request: Project): Response<ProjectResponse>
 
     @PUT("projects/{id}")
     fun updateProject(@Path("id") id: Int, @Body project: Project): Call<Project>
 
     @DELETE("projects/{id}")
     fun deleteProject(@Path("id") id: Int): Call<Void>
+
+    @GET("tasks/{id}")
+    fun getTasks(@Path("id") id: Int): Call<List<Tasks>>
+
 }
 

@@ -35,7 +35,6 @@ class ManagerMainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var progressBar: ProgressBar
     private lateinit var btnAdd: FloatingActionButton
-    private lateinit var btnLogout: Button
     private lateinit var projectList: ArrayList<Project>
     private lateinit var adapter: ProjectAdapter
     private lateinit var api: ApiService
@@ -53,7 +52,6 @@ class ManagerMainActivity : AppCompatActivity() {
         recyclerView = findViewById(R.id.recyclerView)
         progressBar = findViewById(R.id.progressBar)
         btnAdd = findViewById(R.id.btnAdd)
-        btnLogout = findViewById(R.id.btnLogOut)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         projectList = arrayListOf()
@@ -65,16 +63,9 @@ class ManagerMainActivity : AppCompatActivity() {
 
         fetchProjects()
 
-        btnLogout.setOnClickListener {
-            sessionManager.clearSession()
-            Toast.makeText(this, "Anda telah logout", Toast.LENGTH_SHORT).show()
-            startActivity(Intent(this, LoginActivity::class.java))
-        }
-
         btnAdd.setOnClickListener {
             showProjectDialog()
         }
-
     }
 
     override fun onCreateOptionsMenu(menu: android.view.Menu?): Boolean {
