@@ -1,9 +1,13 @@
 package com.example.apiretrofit.api.model
 import com.google.gson.annotations.SerializedName
 
-data class Tasks(
+data class TaskRequest(
+
     @SerializedName("project_id")
     val projectId: Int,
+
+    @SerializedName("id")
+    val taskID: Int,
 
     @SerializedName("name")
     val taskName: String,
@@ -23,7 +27,7 @@ data class Tasks(
     @SerializedName("status")
     val status: String,
 
-    @SerializedName("user_name")
-    val userName: String,
-)
+    @SerializedName("user_id")
+    val userID: Int,
 
+)

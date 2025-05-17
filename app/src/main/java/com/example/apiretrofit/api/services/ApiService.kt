@@ -5,8 +5,10 @@ import com.example.apiretrofit.api.model.LoginResponse
 import com.example.apiretrofit.api.model.Project
 import com.example.apiretrofit.api.model.ProjectResponse
 import com.example.apiretrofit.api.model.RegisterResponse
+import com.example.apiretrofit.api.model.TaskRequest
 import com.example.apiretrofit.api.model.User
-import com.example.apiretrofit.api.model.Tasks
+import com.example.apiretrofit.api.model.TaskResponse
+import com.example.apiretrofit.api.model.UserByProjectID
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -27,6 +29,9 @@ interface ApiService {
     @GET("projects")
     fun getProjects(): Call<List<Project>>
 
+    @GET("teams/{id}")
+    fun getUserByProjID(@Path("id") id: Int): Call<List<UserByProjectID>>
+
     @POST("projects")
     suspend fun createProject(@Body request: Project): Response<ProjectResponse>
 
@@ -37,7 +42,16 @@ interface ApiService {
     fun deleteProject(@Path("id") id: Int): Call<Void>
 
     @GET("tasks/{id}")
-    fun getTasks(@Path("id") id: Int): Call<List<Tasks>>
+    fun getTasks(@Path("id") id: Int): Call<List<TaskResponse>>
+
+    @POST("tasks")
+    suspend fun createTask(@Body request: TaskRequest): Response<TaskResponse>
+
+    @PUT("tasks/{id}")
+    fun updateTask(@Path("id") id: Int, @Body task: TaskRequest): Call<TaskResponse>
+
+    @DELETE("tasks/{id}")
+    fun deleteTask(@Path("id") id: Int): Call<Void>
 
 }
 
