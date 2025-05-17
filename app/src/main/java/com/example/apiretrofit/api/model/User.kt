@@ -5,5 +5,6 @@ data class User(
     val username: String,
     val password: String? = null,
     val nama_lengkap: String,
-    val role: String
+    val role: String,
+    val team_id: Int? = null,
 )

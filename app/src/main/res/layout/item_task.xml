@@ -15,28 +15,6 @@
 
         <TextView
             android:id="@+id/textTaskName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Task Name"
-            android:textSize="18sp"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:id="@+id/textPriority"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Prioritas"
-            android:textSize="14sp"/>
-
-        <TextView
-            android:id="@+id/textStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Status"
-            android:textSize="14sp"/>
-
-        <TextView
-            android:id="@+id/txtProjectName"
             android:textSize="18sp"
             android:textStyle="bold"
             android:text="Nama Proyek"
@@ -44,22 +22,28 @@
             android:layout_height="wrap_content" />
 
         <TextView
-            android:id="@+id/txtStatus"
+            android:id="@+id/textPriority"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Status" />
+            android:text="Priority" />
 
         <TextView
-            android:id="@+id/txtDates"
+            android:id="@+id/textDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Tanggal Mulai - Selesai" />
 
         <TextView
-            android:id="@+id/txtBudget"
+            android:id="@+id/textStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Anggaran" />
+            android:text="Status" />
+
+        <TextView
+            android:id="@+id/textDitugas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Di tugaskan ke" />
 
         <LinearLayout
             android:layout_width="match_parent"

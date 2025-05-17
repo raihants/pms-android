@@ -1,24 +1,33 @@
 package com.example.apiretrofit.adapter
 
+import android.app.AlertDialog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.apiretrofit.R
-import com.example.apiretrofit.api.model.Tasks
+import com.example.apiretrofit.api.model.TaskResponse
 import com.example.apiretrofit.ui.manager.DetailProjectActivity
 
 class TaskAdapter(
-    private val taskList: List<Tasks>,
+    private val taskList: List<TaskResponse>,
+    private val context: DetailProjectActivity,
 ) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>() {
 
     class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val taskName: TextView = itemView.findViewById(R.id.textTaskName)
         val priority: TextView = itemView.findViewById(R.id.textPriority)
+        val date: TextView = itemView.findViewById(R.id.textDate)
+        val status: TextView = itemView.findViewById(R.id.textStatus)
+        val tugas : TextView = itemView.findViewById(R.id.textDitugas)
         val cardView: CardView = itemView.findViewById(R.id.cardView)
+        val btnEdit: ImageButton = itemView.findViewById(R.id.btnEdit)
+        val btnDelete: ImageButton = itemView.findViewById(R.id.btnDelete)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
@@ -30,9 +39,11 @@ class TaskAdapter(
         val task = taskList[position]
         holder.taskName.text = task.taskName
         holder.priority.text = "Priority: ${task.priority}"
+        holder.date.text = "Mulai: ${task.startDate.takeIf { it.length >= 10 }?.substring(0, 10) ?: ""} | Selesai: ${task.endDate.takeIf { it.length >= 10 }?.substring(0, 10) ?: ""}"
+        holder.status.text = "Status: ${task.status}"
+        holder.tugas.text = "Di tugaskan ke: ${task.userName}"
 
         // Atur warna berdasarkan prioritas
-        val context = holder.itemView.context
         val color = when (task.priority.lowercase()) {
             "tinggi" -> ContextCompat.getColor(context, android.R.color.holo_red_light)
             "sedang" -> ContextCompat.getColor(context, android.R.color.holo_orange_light)
@@ -41,6 +52,21 @@ class TaskAdapter(
         }
 
         holder.cardView.setCardBackgroundColor(color)
+
+        holder.btnEdit.setOnClickListener {
+            context.showTaskDialog(task)
+        }
+
+        holder.btnDelete.setOnClickListener {
+            AlertDialog.Builder(context)
+                .setTitle("Hapus Proyek")
+                .setMessage("Yakin ingin menghapus proyek ini?")
+                .setPositiveButton("Ya") { _, _ ->
+                    context.deleteTask(task)
+                }
+                .setNegativeButton("Batal", null)
+                .show()
+        }
     }
 
     override fun getItemCount(): Int = taskList.size

@@ -2,6 +2,7 @@ package com.example.apiretrofit.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -77,6 +78,7 @@ class LoginActivity : AppCompatActivity() {
 
                 } else {
                     Toast.makeText(this@LoginActivity, "Login gagal", Toast.LENGTH_SHORT).show()
+                    Log.e("API", "Error login: ${response.errorBody()?.string()}")
                 }
             } catch (e: Exception) {
                 Toast.makeText(this@LoginActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
