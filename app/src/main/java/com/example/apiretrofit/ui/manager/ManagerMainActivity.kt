@@ -16,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.apiretrofit.R
 import com.example.apiretrofit.adapter.ProjectAdapter
 import com.example.apiretrofit.api.model.Project
@@ -33,7 +34,7 @@ import java.util.*
 
 class ManagerMainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
-    private lateinit var progressBar: ProgressBar
+    private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var btnAdd: FloatingActionButton
     private lateinit var projectList: ArrayList<Project>
     private lateinit var adapter: ProjectAdapter
@@ -50,7 +51,7 @@ class ManagerMainActivity : AppCompatActivity() {
         }
 
         recyclerView = findViewById(R.id.recyclerView)
-        progressBar = findViewById(R.id.progressBar)
+        swipeRefresh = findViewById(R.id.swipeRefresh)
         btnAdd = findViewById(R.id.btnAdd)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -62,6 +63,10 @@ class ManagerMainActivity : AppCompatActivity() {
         api = ApiClient.getApiService(this)
 
         fetchProjects()
+
+        swipeRefresh.setOnRefreshListener {
+            fetchProjects()
+        }
 
         btnAdd.setOnClickListener {
             showProjectDialog()
@@ -92,10 +97,10 @@ class ManagerMainActivity : AppCompatActivity() {
 
 
     private fun fetchProjects() {
-        progressBar.visibility = View.VISIBLE
+        swipeRefresh.isRefreshing = true
         api.getProjects().enqueue(object : Callback<List<Project>> {
             override fun onResponse(call: Call<List<Project>>, response: Response<List<Project>>) {
-                progressBar.visibility = View.GONE
+                swipeRefresh.isRefreshing = false
                 if (response.isSuccessful) {
                     projectList.clear()
                     response.body()?.let { projectList.addAll(it) }
@@ -104,7 +109,7 @@ class ManagerMainActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call<List<Project>>, t: Throwable) {
-                progressBar.visibility = View.GONE
+                swipeRefresh.isRefreshing = false
                 Toast.makeText(this@ManagerMainActivity, "Gagal ambil data", Toast.LENGTH_SHORT)
                     .show()
             }
