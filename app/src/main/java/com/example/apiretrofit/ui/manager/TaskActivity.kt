@@ -4,10 +4,8 @@ import android.app.DatePickerDialog
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.EditText
-import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -18,12 +16,12 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.apiretrofit.R
 import com.example.apiretrofit.adapter.TaskAdapter
-import com.example.apiretrofit.api.model.Project
 import com.example.apiretrofit.api.model.TaskRequest
 import com.example.apiretrofit.api.model.TaskResponse
-import com.example.apiretrofit.api.model.UserByProjectID
+import com.example.apiretrofit.api.model.UserTeam
 import com.example.apiretrofit.api.services.ApiClient
 import com.example.apiretrofit.api.services.ApiService
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -34,26 +32,25 @@ import retrofit2.Response
 import java.util.Calendar
 import kotlin.collections.ArrayList
 
-class DetailProjectActivity : AppCompatActivity() {
+class TaskActivity : AppCompatActivity() {
     private lateinit var taskList: ArrayList<TaskResponse>
-    private lateinit var userList: ArrayList<UserByProjectID>
-    private lateinit var progressBar: ProgressBar
+    private lateinit var userList: ArrayList<UserTeam>
     private lateinit var api: ApiService
     private lateinit var buttonAdd: FloatingActionButton
     private lateinit var adapter: TaskAdapter
+    private lateinit var swipeRefresh: SwipeRefreshLayout
     private var projectID: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_detail_project)
+        setContentView(R.layout.activity_task)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        progressBar = findViewById(R.id.progressBar)
         buttonAdd = findViewById(R.id.btnAdd)
 
         taskList = ArrayList()
@@ -74,6 +71,11 @@ class DetailProjectActivity : AppCompatActivity() {
             { showTaskDialog() }
         )
 
+        swipeRefresh = findViewById(R.id.swipeRefresh)
+        swipeRefresh.setOnRefreshListener {
+            fetchTasks(projectID) // refresh task saat swipe
+        }
+
         if (projectID != -1) {
             fetchTasks(projectID)
             fetchUsers(projectID)
@@ -87,31 +89,30 @@ class DetailProjectActivity : AppCompatActivity() {
         return true
     }
 
-    private fun fetchTasks( id : Int) {
-        progressBar.visibility = View.VISIBLE
+    private fun fetchTasks(id: Int) {
+        swipeRefresh.isRefreshing = true
         api.getTasks(id).enqueue(object : Callback<List<TaskResponse>> {
             override fun onResponse(call: Call<List<TaskResponse>>, response: Response<List<TaskResponse>>) {
-                progressBar.visibility = View.GONE
+                swipeRefresh.isRefreshing = false
                 if (response.isSuccessful) {
                     taskList.clear()
                     response.body()?.let { taskList.addAll(it) }
-                    Log.d("API_RESPONSE", taskList.toString())
                     adapter.notifyDataSetChanged()
                 }
             }
 
             override fun onFailure(call: Call<List<TaskResponse>>, t: Throwable) {
-                progressBar.visibility = View.GONE
-                Toast.makeText(this@DetailProjectActivity, "Gagal ambil data", Toast.LENGTH_SHORT)
-                    .show()
+                swipeRefresh.isRefreshing = false
+                Toast.makeText(this@TaskActivity, "Gagal ambil data", Toast.LENGTH_SHORT).show()
             }
         })
     }
+
     private fun fetchUsers( id : Int ) {
-        progressBar.visibility = View.VISIBLE
-        api.getUserByProjID(id).enqueue(object : Callback<List<UserByProjectID>> {
-            override fun onResponse(call: Call<List<UserByProjectID>>, response: Response<List<UserByProjectID>>) {
-                progressBar.visibility = View.GONE
+        swipeRefresh.isRefreshing = true
+        api.getTeamsUsers(id).enqueue(object : Callback<List<UserTeam>> {
+            override fun onResponse(call: Call<List<UserTeam>>, response: Response<List<UserTeam>>) {
+                swipeRefresh.isRefreshing = false
                 if (response.isSuccessful) {
                     userList.clear()
                     response.body()?.let { userList.addAll(it) }
@@ -120,9 +121,9 @@ class DetailProjectActivity : AppCompatActivity() {
                 }
             }
 
-            override fun onFailure(call: Call<List<UserByProjectID>>, t: Throwable) {
-                progressBar.visibility = View.GONE
-                Toast.makeText(this@DetailProjectActivity, "Gagal ambil data user", Toast.LENGTH_SHORT)
+            override fun onFailure(call: Call<List<UserTeam>>, t: Throwable) {
+                swipeRefresh.isRefreshing = false
+                Toast.makeText(this@TaskActivity, "Gagal ambil data user", Toast.LENGTH_SHORT)
                     .show()
             }
         })
@@ -140,7 +141,7 @@ class DetailProjectActivity : AppCompatActivity() {
 
         val statuses = arrayOf("Belum Dimulai", "Sedang Dikerjakan", "Selesai")
         val priorities = arrayOf("Tinggi", "Sedang", "Rendah")
-        val userNames = userList.map { it.name }
+        val userNames = userList.map { it.userName }
 
         val adapterDiTugas = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, userNames)
         diTugas.adapter = adapterDiTugas
@@ -179,7 +180,7 @@ class DetailProjectActivity : AppCompatActivity() {
             if (priorityIndex >= 0) {
                 priority.setSelection(priorityIndex)
             }
-            val userIndex = userList.indexOfFirst { it.name == task.userName }
+            val userIndex = userList.indexOfFirst { it.userName == task.userName }
             if (userIndex >= 0) {
                 diTugas.setSelection(userIndex)
             }
@@ -224,13 +225,13 @@ class DetailProjectActivity : AppCompatActivity() {
             try {
                 val response = api.createTask(task)
                 if (response.isSuccessful) {
-                    Toast.makeText(this@DetailProjectActivity, "Task berhasil ditambahkan", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@TaskActivity, "Task berhasil ditambahkan", Toast.LENGTH_SHORT).show()
                     fetchTasks(projectID)
                 } else {
-                    Toast.makeText(this@DetailProjectActivity, "Gagal menambahkan task", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@TaskActivity, "Gagal menambahkan task", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(this@DetailProjectActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@TaskActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -239,16 +240,16 @@ class DetailProjectActivity : AppCompatActivity() {
         api.updateTask(task.taskID, task).enqueue(object : Callback<TaskResponse> {
             override fun onResponse(call: Call<TaskResponse>, response: Response<TaskResponse>) {
                 if (response.isSuccessful) {
-                    Toast.makeText(this@DetailProjectActivity, "Task diperbarui", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@TaskActivity, "Task diperbarui", Toast.LENGTH_SHORT).show()
                     fetchTasks(projectID)
                 } else {
-                    Toast.makeText(this@DetailProjectActivity, "Gagal memperbarui task", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@TaskActivity, "Gagal memperbarui task", Toast.LENGTH_SHORT).show()
                     Log.e("API", "Error updating task: ${response.errorBody()?.string()}")
                 }
             }
 
             override fun onFailure(call: Call<TaskResponse>, t: Throwable) {
-                Toast.makeText(this@DetailProjectActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@TaskActivity, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -258,18 +259,18 @@ class DetailProjectActivity : AppCompatActivity() {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                 if (response.isSuccessful) {
                     Log.d("DELETE_TASK", "Status Code: ${response.code()}, task id = ${task.taskID}")
-                    Toast.makeText(this@DetailProjectActivity, "Task dihapus", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@TaskActivity, "Task dihapus", Toast.LENGTH_SHORT).show()
                     fetchTasks(projectID)
                 } else {
                     Log.e("DELETE_TASK", "Failed to delete. Code: ${response.code()}, Message: ${response.message()}")
-                    Toast.makeText(this@DetailProjectActivity, "Gagal hapus task", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@TaskActivity, "Gagal hapus task", Toast.LENGTH_SHORT).show()
                 }
             }
 
 
             override fun onFailure(call: Call<Void>, t: Throwable) {
                 Toast.makeText(
-                    this@DetailProjectActivity,
+                    this@TaskActivity,
                     "Gagal hapus task",
                     Toast.LENGTH_SHORT
                 ).show()

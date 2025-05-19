@@ -10,7 +10,8 @@ import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
 import com.example.apiretrofit.R
 import com.example.apiretrofit.api.model.Project
-import com.example.apiretrofit.ui.manager.DetailProjectActivity
+import com.example.apiretrofit.ui.manager.ManagerMenuActivity
+import com.example.apiretrofit.ui.manager.TaskActivity
 
 class ProjectAdapter(
     private val projects: List<Project>,
@@ -56,8 +57,9 @@ class ProjectAdapter(
         }
 
         holder.itemView.setOnClickListener {
-            val intent = Intent(context, DetailProjectActivity::class.java)
+            val intent = Intent(context, ManagerMenuActivity::class.java)
             intent.putExtra("project_id", project.id)
+            intent.putExtra("project_name", project.name)
             context.startActivity(intent)
         }
     }

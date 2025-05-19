@@ -4,7 +4,6 @@ import android.app.AlertDialog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.cardview.widget.CardView
@@ -12,11 +11,11 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.apiretrofit.R
 import com.example.apiretrofit.api.model.TaskResponse
-import com.example.apiretrofit.ui.manager.DetailProjectActivity
+import com.example.apiretrofit.ui.manager.TaskActivity
 
 class TaskAdapter(
     private val taskList: List<TaskResponse>,
-    private val context: DetailProjectActivity,
+    private val context: TaskActivity,
 ) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>() {
 
     class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -45,9 +44,9 @@ class TaskAdapter(
 
         // Atur warna berdasarkan prioritas
         val color = when (task.priority.lowercase()) {
-            "tinggi" -> ContextCompat.getColor(context, android.R.color.holo_red_light)
-            "sedang" -> ContextCompat.getColor(context, android.R.color.holo_orange_light)
-            "rendah" -> ContextCompat.getColor(context, android.R.color.holo_green_light)
+            "tinggi" -> ContextCompat.getColor(context, android.R.color.holo_red_dark)
+            "sedang" -> ContextCompat.getColor(context, android.R.color.holo_orange_dark)
+            "rendah" -> ContextCompat.getColor(context, android.R.color.holo_green_dark)
             else -> ContextCompat.getColor(context, android.R.color.darker_gray)
         }
 
