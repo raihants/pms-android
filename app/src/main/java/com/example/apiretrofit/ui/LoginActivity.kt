@@ -13,10 +13,8 @@ import com.example.apiretrofit.R
 import com.example.apiretrofit.api.model.LoginRequest
 import com.example.apiretrofit.api.services.ApiClient
 import com.example.apiretrofit.api.session.SessionManager
-import com.example.apiretrofit.ui.designer.DesignerMainActivity
-import com.example.apiretrofit.ui.developer.DeveloperMainActivity
 import com.example.apiretrofit.ui.manager.ManagerMainActivity
-import com.example.apiretrofit.ui.tester.TesterMainActivity
+import com.example.apiretrofit.ui.others.OthersMainActivity
 import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
@@ -50,35 +48,20 @@ class LoginActivity : AppCompatActivity() {
                     sessionManager.saveAuthToken(body.token)
                     sessionManager.saveUserData(body.user)
 
-                    val userRole = sessionManager.getUserRole()
+                    val userRole = sessionManager.isUserRole("Manajer")
 
-                    when (userRole?.lowercase()) {
-                        "manajer" -> {
-                            startActivity(Intent(this@LoginActivity, ManagerMainActivity::class.java))
-                            Toast.makeText(this@LoginActivity, "Welcome Manager!", Toast.LENGTH_SHORT).show()
-                        }
-                        "developer" -> {
-                            startActivity(Intent(this@LoginActivity, DeveloperMainActivity::class.java))
-                            Toast.makeText(this@LoginActivity, "Welcome Developer!", Toast.LENGTH_SHORT).show()
-                        }
-                        "designer" -> {
-                            startActivity(Intent(this@LoginActivity, DesignerMainActivity::class.java))
-                            Toast.makeText(this@LoginActivity, "Welcome Designer!", Toast.LENGTH_SHORT).show()
-                        }
-                        "tester" -> {
-                            startActivity(Intent(this@LoginActivity, TesterMainActivity::class.java))
-                            Toast.makeText(this@LoginActivity, "Welcome Tester!", Toast.LENGTH_SHORT).show()
-                        }
-                        else -> {
-                            Toast.makeText(this@LoginActivity, "Unknown role: $userRole", Toast.LENGTH_SHORT).show()
-                            return@launch
-                        }
+                    if (userRole) {
+                        startActivity(Intent(this@LoginActivity, ManagerMainActivity::class.java))
+                        Toast.makeText(this@LoginActivity, "Welcome Manager!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        startActivity(Intent(this@LoginActivity, OthersMainActivity::class.java))
+                        Toast.makeText(this@LoginActivity, "Welcome Developer!", Toast.LENGTH_SHORT).show()
                     }
-                    finish()
 
                 } else {
                     Toast.makeText(this@LoginActivity, "Login gagal", Toast.LENGTH_SHORT).show()
                     Log.e("API", "Error login: ${response.errorBody()?.string()}")
+                    Log.e("API", LoginRequest(username, password).toString())
                 }
             } catch (e: Exception) {
                 Toast.makeText(this@LoginActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()

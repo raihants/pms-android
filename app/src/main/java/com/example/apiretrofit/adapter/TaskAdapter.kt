@@ -11,11 +11,12 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.apiretrofit.R
 import com.example.apiretrofit.api.model.TaskResponse
-import com.example.apiretrofit.ui.manager.TaskActivity
+import com.example.apiretrofit.ui.share.TaskActivity
 
 class TaskAdapter(
     private val taskList: List<TaskResponse>,
     private val context: TaskActivity,
+    private val roleBool: Boolean,
 ) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>() {
 
     class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -52,6 +53,12 @@ class TaskAdapter(
 
         holder.cardView.setCardBackgroundColor(color)
 
+        if (roleBool) {
+            holder.btnDelete.visibility = View.VISIBLE
+        } else {
+            holder.btnDelete.visibility = View.GONE
+        }
+
         holder.btnEdit.setOnClickListener {
             context.showTaskDialog(task)
         }
@@ -66,6 +73,7 @@ class TaskAdapter(
                 .setNegativeButton("Batal", null)
                 .show()
         }
+
     }
 
     override fun getItemCount(): Int = taskList.size

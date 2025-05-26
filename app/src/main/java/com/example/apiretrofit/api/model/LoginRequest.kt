@@ -1,6 +1,6 @@
 package com.example.apiretrofit.api.model
 
 data class LoginRequest(
-    val username: String,
+    val identifier: String,
     val password: String
 )

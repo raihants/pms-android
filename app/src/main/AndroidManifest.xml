@@ -16,19 +16,25 @@
         android:theme="@style/Theme.APIRetrofit"
         tools:targetApi="31" >
         <activity
-            android:name=".ui.manager.TeamActivity"
+            android:name=".ui.share.ReportActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.manager.TeamsUsersActivity"
+            android:name=".ui.others.OthersMainActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.manager.LogActivity"
+            android:name=".ui.share.TeamActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.manager.ManagerMenuActivity"
+            android:name=".ui.share.TeamsUsersActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.manager.TaskActivity"
+            android:name=".ui.share.LogActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.share.MenuActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.share.TaskActivity"
             android:exported="false" />
         <activity
             android:name=".ui.tester.TesterMainActivity"

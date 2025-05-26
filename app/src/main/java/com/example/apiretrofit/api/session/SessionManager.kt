@@ -19,7 +19,7 @@ class SessionManager(context: Context) {
         prefs.edit()
             .putInt("USER_ID", user.id)
             .putString("USERNAME", user.username)
-            .putString("NAMA_LENGKAP", user.nama_lengkap)
+            .putString("NAMA_LENGKAP", user.name)
             .putString("ROLE", user.role)
             .apply()
     }

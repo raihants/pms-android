@@ -1,8 +1,8 @@
-package com.example.apiretrofit.ui.manager
+package com.example.apiretrofit.ui.share
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -13,11 +13,11 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.apiretrofit.R
 import com.example.apiretrofit.adapter.LogAdapter
-import com.example.apiretrofit.adapter.ProjectAdapter
 import com.example.apiretrofit.api.model.LogResponse
-import com.example.apiretrofit.api.model.Project
 import com.example.apiretrofit.api.services.ApiClient
 import com.example.apiretrofit.api.services.ApiService
+import com.example.apiretrofit.api.session.SessionManager
+import com.example.apiretrofit.ui.LoginActivity
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -29,6 +29,7 @@ class LogActivity : AppCompatActivity() {
     private lateinit var adapter: LogAdapter
     private lateinit var api: ApiService
     private var projectID: Int = -1
+    private lateinit var sessionManager: SessionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,6 +62,28 @@ class LogActivity : AppCompatActivity() {
             fetchLogs(projectID)
         } else {
             Toast.makeText(this, "ID proyek tidak ditemukan", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: android.view.Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_profile -> {
+                Toast.makeText(this, "Klik Profile", Toast.LENGTH_SHORT).show()
+                true
+            }
+            R.id.action_logout -> {
+                sessionManager.clearSession()
+                Toast.makeText(this, "Anda telah logout", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 

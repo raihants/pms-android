@@ -3,6 +3,9 @@ package com.example.apiretrofit.api.model
 import com.google.gson.annotations.SerializedName
 
 data class UserTeam (
+    @SerializedName("user_id")
+    val userId: Int,
+
     @SerializedName("id")
     val id: Int,
 

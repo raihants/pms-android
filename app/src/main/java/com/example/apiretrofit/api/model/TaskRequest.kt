@@ -3,6 +3,9 @@ import com.google.gson.annotations.SerializedName
 
 data class TaskRequest(
 
+    @SerializedName("sus_id")
+    val susId: Int,
+
     @SerializedName("project_id")
     val projectId: Int,
 

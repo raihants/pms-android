@@ -8,10 +8,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.apiretrofit.R
 import com.example.apiretrofit.api.model.Team
-import com.example.apiretrofit.ui.manager.ManagerMainActivity
-import com.example.apiretrofit.ui.manager.ManagerMenuActivity
-import com.example.apiretrofit.ui.manager.TeamActivity
-import com.example.apiretrofit.ui.manager.TeamsUsersActivity
+import com.example.apiretrofit.ui.share.TeamActivity
+import com.example.apiretrofit.ui.share.TeamsUsersActivity
 
 class TeamAdapter (
     private val teamList: List<Team>,

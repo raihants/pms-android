@@ -56,10 +56,19 @@ class ManagerMainActivity : AppCompatActivity() {
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         projectList = arrayListOf()
-        adapter = ProjectAdapter(projectList, this)
-        recyclerView.adapter = adapter
 
         sessionManager = SessionManager(this)
+        val role = sessionManager.isUserRole("Manajer")
+
+        adapter = ProjectAdapter(projectList, this, role,
+            onEditClicked = { project ->
+                showProjectDialog(project)
+            },
+            onDeleteClicked = { project ->
+                deleteProject(project)
+            })
+        recyclerView.adapter = adapter
+
         api = ApiClient.getApiService(this)
 
         fetchProjects()
@@ -102,8 +111,13 @@ class ManagerMainActivity : AppCompatActivity() {
             override fun onResponse(call: Call<List<Project>>, response: Response<List<Project>>) {
                 swipeRefresh.isRefreshing = false
                 if (response.isSuccessful) {
+                    val managerId = sessionManager.getUserId()
+                    val allProjects = response.body()
+                    Log.d("DEBUG", "Semua project dari API: $allProjects")
+                    val filtered = allProjects?.filter { it.manager_id == managerId }
+                    Log.d("DEBUG", "Project setelah filter: $filtered")
                     projectList.clear()
-                    response.body()?.let { projectList.addAll(it) }
+                    filtered?.let { projectList.addAll(it) }
                     adapter.notifyDataSetChanged()
                 }
             }

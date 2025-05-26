@@ -27,6 +27,9 @@ data class TaskResponse(
     @SerializedName("status")
     val status: String,
 
+    @SerializedName("user_id")
+    val userID: Int,
+
     @SerializedName("user_name")
     val userName: String,
 )

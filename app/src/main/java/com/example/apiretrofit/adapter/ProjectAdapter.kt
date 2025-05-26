@@ -1,7 +1,7 @@
 package com.example.apiretrofit.adapter
 
-import com.example.apiretrofit.ui.manager.ManagerMainActivity
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
@@ -10,12 +10,14 @@ import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
 import com.example.apiretrofit.R
 import com.example.apiretrofit.api.model.Project
-import com.example.apiretrofit.ui.manager.ManagerMenuActivity
-import com.example.apiretrofit.ui.manager.TaskActivity
+import com.example.apiretrofit.ui.share.MenuActivity
 
 class ProjectAdapter(
     private val projects: List<Project>,
-    private val context: ManagerMainActivity
+    private val context: Context,
+    private val roleBool: Boolean,
+    private val onEditClicked: (Project) -> Unit,
+    private val onDeleteClicked: (Project) -> Unit
 ) : RecyclerView.Adapter<ProjectAdapter.ProjectViewHolder>() {
 
     inner class ProjectViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -41,8 +43,14 @@ class ProjectAdapter(
         holder.txtDates.text = "Mulai: ${project.start_date.takeIf { it.length >= 10 }?.substring(0, 10) ?: ""} | Selesai: ${project.end_date.takeIf { it.length >= 10 }?.substring(0, 10) ?: ""}"
         holder.txtBudget.text = "Anggaran: Rp${project.budget}"
 
+        if (roleBool) {
+            holder.btnDelete.visibility = View.VISIBLE
+        } else {
+            holder.btnDelete.visibility = View.GONE
+        }
+
         holder.btnEdit.setOnClickListener {
-            context.showProjectDialog(project)
+            onEditClicked(project)
         }
 
         holder.btnDelete.setOnClickListener {
@@ -50,17 +58,18 @@ class ProjectAdapter(
                 .setTitle("Hapus Proyek")
                 .setMessage("Yakin ingin menghapus proyek ini?")
                 .setPositiveButton("Ya") { _, _ ->
-                    context.deleteProject(project)
+                    onDeleteClicked(project)
                 }
                 .setNegativeButton("Batal", null)
                 .show()
         }
 
         holder.itemView.setOnClickListener {
-            val intent = Intent(context, ManagerMenuActivity::class.java)
+            val intent = Intent(context, MenuActivity::class.java)
             intent.putExtra("project_id", project.id)
             intent.putExtra("project_name", project.name)
             context.startActivity(intent)
         }
     }
 }
+

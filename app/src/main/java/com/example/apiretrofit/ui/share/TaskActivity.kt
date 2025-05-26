@@ -1,6 +1,7 @@
-package com.example.apiretrofit.ui.manager
+package com.example.apiretrofit.ui.share
 
 import android.app.DatePickerDialog
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,6 +14,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -24,6 +26,8 @@ import com.example.apiretrofit.api.model.TaskResponse
 import com.example.apiretrofit.api.model.UserTeam
 import com.example.apiretrofit.api.services.ApiClient
 import com.example.apiretrofit.api.services.ApiService
+import com.example.apiretrofit.api.session.SessionManager
+import com.example.apiretrofit.ui.LoginActivity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.launch
 import retrofit2.Call
@@ -39,7 +43,9 @@ class TaskActivity : AppCompatActivity() {
     private lateinit var buttonAdd: FloatingActionButton
     private lateinit var adapter: TaskAdapter
     private lateinit var swipeRefresh: SwipeRefreshLayout
+    private lateinit var sessionManager: SessionManager
     private var projectID: Int = -1
+    private var userId: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,9 +61,15 @@ class TaskActivity : AppCompatActivity() {
 
         taskList = ArrayList()
 
+        sessionManager = SessionManager(this)
+
+        val role = sessionManager.isUserRole("Manajer")
+
+        userId = sessionManager.getUserId()
+
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = TaskAdapter(taskList, this)
+        adapter = TaskAdapter(taskList, this, role)
         recyclerView.adapter = adapter
 
         api = ApiClient.getApiService(this)
@@ -66,6 +78,8 @@ class TaskActivity : AppCompatActivity() {
 
         projectID = intent.getIntExtra("project_id", -1)
         Log.d("project_id", projectID.toString())
+
+        buttonAdd.isVisible = role
 
         buttonAdd.setOnClickListener(
             { showTaskDialog() }
@@ -89,7 +103,24 @@ class TaskActivity : AppCompatActivity() {
         return true
     }
 
-    private fun fetchTasks(id: Int) {
+    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_profile -> {
+                Toast.makeText(this, "Klik Profile", Toast.LENGTH_SHORT).show()
+                true
+            }
+            R.id.action_logout -> {
+                sessionManager.clearSession()
+                Toast.makeText(this, "Anda telah logout", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun fetchTasks( id: Int ) {
         swipeRefresh.isRefreshing = true
         api.getTasks(id).enqueue(object : Callback<List<TaskResponse>> {
             override fun onResponse(call: Call<List<TaskResponse>>, response: Response<List<TaskResponse>>) {
@@ -138,6 +169,38 @@ class TaskActivity : AppCompatActivity() {
         val status = dialogView.findViewById<Spinner>(R.id.spinnerStatus)
         val priority = dialogView.findViewById<Spinner>(R.id.spinnerPrioritas)
         val diTugas = dialogView.findViewById<Spinner>(R.id.spinnerDiTugas)
+        val isManager = sessionManager.isUserRole("Manajer")
+        val isAssignedUser = task != null && task.userID == userId
+
+        val canEditAllFields = isManager
+        val canOnlyUpdateStatus = !isManager && isAssignedUser
+
+
+        when {
+            canEditAllFields -> {
+            }
+            canOnlyUpdateStatus -> {
+                // User hanya bisa update status
+                name.isEnabled = false
+                description.isEnabled = false
+                startDate.isEnabled = false
+                endDate.isEnabled = false
+                priority.isEnabled = false
+                diTugas.isEnabled = false
+                status.isEnabled = true
+            }
+            else -> {
+                // Tidak bisa edit apapun
+                name.isEnabled = false
+                description.isEnabled = false
+                startDate.isEnabled = false
+                endDate.isEnabled = false
+                priority.isEnabled = false
+                diTugas.isEnabled = false
+                status.isEnabled = false
+            }
+        }
+
 
         val statuses = arrayOf("Belum Dimulai", "Sedang Dikerjakan", "Selesai")
         val priorities = arrayOf("Tinggi", "Sedang", "Rendah")
@@ -187,32 +250,82 @@ class TaskActivity : AppCompatActivity() {
         }
 
         val dialog = AlertDialog.Builder(this)
-            .setTitle(if (task == null) "Tambah Project" else "Edit Project")
+            .setTitle(
+                when {
+                    task == null -> "Tambah Task"
+                    canOnlyUpdateStatus -> "Update Status"
+                    else -> "Edit Task"
+                }
+            )
             .setView(dialogView)
             .setPositiveButton(if (task == null) "Simpan" else "Update") { _, _ ->
                 val selectedUserIndex = diTugas.selectedItemPosition
-                val selectedUserId = userList.getOrNull(selectedUserIndex)?.id ?: -1 // fallback
+                val selectedUserId = userList.getOrNull(selectedUserIndex)?.userId ?: -1
                 val selectedPriority = priority.selectedItem.toString()
-                Log.e("selected", selectedUserId.toString() + selectedPriority)
-                val taskData = TaskRequest(
-                    projectId = projectID,
-                    taskID = task?.taskID ?: 0,
-                    taskName = name.text.toString(),
-                    description = description.text.toString(),
-                    priority = selectedPriority,
-                    startDate = startDate.text.toString(),
-                    endDate = endDate.text.toString(),
-                    status = status.selectedItem.toString(),
-                    userID = selectedUserId
-                )
-                Log.e("taskData", taskData.toString())
+                val newStatus = status.selectedItem.toString()
 
+                val taskData = if (task == null) {
+                    // Tambah task (hanya boleh oleh manajer)
+                    if (!sessionManager.isUserRole("Manajer")) {
+                        Toast.makeText(this, "Hanya manajer yang bisa menambahkan task", Toast.LENGTH_SHORT).show()
+                        return@setPositiveButton
+                    }
+                    TaskRequest(
+                        susId = userId,
+                        projectId = projectID,
+                        taskID = 0,
+                        taskName = name.text.toString(),
+                        description = description.text.toString(),
+                        priority = selectedPriority,
+                        startDate = startDate.text.toString(),
+                        endDate = endDate.text.toString(),
+                        status = newStatus,
+                        userID = selectedUserId
+                    )
+                } else {
+                    // Update task
+                    if (sessionManager.isUserRole("Manajer")) {
+                        // Manajer bisa ubah semua field
+                        TaskRequest(
+                            susId = userId,
+                            projectId = projectID,
+                            taskID = task.taskID,
+                            taskName = name.text.toString(),
+                            description = description.text.toString(),
+                            priority = selectedPriority,
+                            startDate = startDate.text.toString(),
+                            endDate = endDate.text.toString(),
+                            status = newStatus,
+                            userID = selectedUserId
+                        )
+                    } else if (canOnlyUpdateStatus) {
+                        TaskRequest(
+                            susId = userId,
+                            projectId = task.projectId,
+                            taskID = task.taskID,
+                            taskName = task.taskName,
+                            description = task.description,
+                            priority = task.priority,
+                            startDate = startDate.text.toString(),
+                            endDate = endDate.text.toString(),
+                            status = newStatus,
+                            userID = task.userID
+                        )
+                    }
+                    else {
+                        Toast.makeText(this, "Tidak diizinkan mengedit task ini", Toast.LENGTH_SHORT).show()
+                        return@setPositiveButton
+                    }
+                }
+
+                // Kirim ke server
                 if (task == null) {
                     createTask(taskData)
                 } else {
                     updateTask(taskData)
                 }
             }
+
 
             .setNegativeButton("Batal", null)
             .create()
@@ -245,6 +358,7 @@ class TaskActivity : AppCompatActivity() {
                 } else {
                     Toast.makeText(this@TaskActivity, "Gagal memperbarui task", Toast.LENGTH_SHORT).show()
                     Log.e("API", "Error updating task: ${response.errorBody()?.string()}")
+                    Log.d("API", task.toString())
                 }
             }
 
@@ -262,7 +376,7 @@ class TaskActivity : AppCompatActivity() {
                     Toast.makeText(this@TaskActivity, "Task dihapus", Toast.LENGTH_SHORT).show()
                     fetchTasks(projectID)
                 } else {
-                    Log.e("DELETE_TASK", "Failed to delete. Code: ${response.code()}, Message: ${response.message()}")
+                    Log.e("DELETE_TASK", "Failed to delete. Code: ${response.code()}, Message: ${response.message()} ${response.errorBody()?.string()}")
                     Toast.makeText(this@TaskActivity, "Gagal hapus task", Toast.LENGTH_SHORT).show()
                 }
             }
