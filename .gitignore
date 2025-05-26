@@ -18,6 +18,12 @@ output.json
 # IntelliJ / Android Studio
 *.iml
 .idea/
+.idea/caches
+.idea/libraries
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
 *.ipr
 *.iws
 *.swp
